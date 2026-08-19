@@ -1,0 +1,24 @@
+name: Pobieraj mecze codziennie
+
+on:
+  schedule:
+    - cron: '0 5 * * *'  # Uruchamia się codziennie o 5:00 czasu UTC (czyli 7:00 rano czasu polskiego)
+  workflow_dispatch:      # Pozwala też włączyć skrypt ręcznie przyciskiem na stronie
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobierz kod z repozytorium
+        uses: actions/checkout@v4
+
+      - name: Zainstaluj Pythona
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Zainstaluj bibliotekę requests
+        run: pip install requests
+
+      - name: Uruchom skrypt
+        run: python pobierz_mecze.py
