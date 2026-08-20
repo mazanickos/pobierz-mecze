@@ -12,7 +12,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def pobierz_i_zapisz_mecze():
     # Pobieramy dzisiejszą datę
-    dzisiaj = datetime.now().strftime('%Y-%m-%d')
+    dzisiaj = "2024-05-15"
     # Jeśli chcesz przetestować konkretny dzień, w którym na pewno były mecze, 
     # możesz odkomentować poniższą linijkę i wpisać datę:
     # dzisiaj = "2026-05-15"
