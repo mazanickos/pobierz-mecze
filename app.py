@@ -19,7 +19,7 @@ try:
     dane = response.data
 
     if dane:
-        st.success(Znaleziono {len(dane)} meczów w bazie!)
+        st.success(f"Znaleziono {len(dane)} meczów w bazie!")
         # Wyświetlenie danych jako ładna tabela w Streamlit
         st.dataframe(dane, use_container_width=True)
     else:
