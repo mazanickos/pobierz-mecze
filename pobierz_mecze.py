@@ -1,53 +1,56 @@
+from datetime import datetime
 import os
 import requests
-from datetime import datetime
 from supabase import create_client, Client
 
-# Pobieranie kluczy z bezpiecznych zmiennych środowiskowych GitHub Actions
+# Konfiguracja API i Supabase
+API_KEY = "TWOJ_KLUCZ_API"  # Zostaw swój klucz do API-Football
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
-# Połączenie z bazą danych Supabase
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-API_KEY = "5faa4ab67a7bd457fb0783838bf1d3d"
-dzisiaj = datetime.now().strftime('%Y-%m-%d')
-url = f"https://v3.football.api-sports.io/fixtures?date={dzisiaj}"
+def pobierz_i_zapisz_mecze():
+    # Pobieramy dzisiejszą datę
+    dzisiaj = datetime.now().strftime('%Y-%m-%d')
+    # Jeśli chcesz przetestować konkretny dzień, w którym na pewno były mecze, 
+    # możesz odkomentować poniższą linijkę i wpisać datę:
+    # dzisiaj = "2026-05-15"
 
-headers = {
-    'x-apisports-key': API_KEY
-}
+    url = f"https://v3.football.api-sports.io/fixtures?date={dzisiaj}"
+    headers = {
+        'x-apisports-key': API_KEY
+    }
 
-response = requests.get(url, headers=headers)
-
-if response.status_code == 200:
+    response = requests.get(url, headers=headers)
     data = response.json()
-    liczba_meczow = data.get('results', 0)
-    print(f"Pobrano {liczba_meczow} meczů z API.")
-    
-    mecze_do_zapisu = []
-    
-    for match in data.get('response', []):
-        liga = match['league']['name']
-        kraj = match['league']['country']
-        home = match['teams']['home']['name']
-        away = match['teams']['away']['name']
-        
-        # Przygotowujemy słownik pasujący do kolumn w Twojej tabeli 'mecze'
-        rekord = {
+
+    mecze = data.get('response', [])
+    print(f"Pobrano {len(mecze)} meczów z API.")
+
+    if not mecze:
+        print("Brak meczów do zapisania na dzisiaj.")
+        return
+
+    for mecz in mecze:
+        kraj = mecz['league']['country']
+        liga = mecz['league']['name']
+        gospodarz = mecz['teams']['home']['name']
+        gosc = mecz['teams']['away']['name']
+        data_meczu = mecz['fixture']['date']
+
+        dane_rekordu = {
             "kraj": kraj,
             "liga": liga,
-            "gospodarz": home,
-            "gosc": away,
-            "data_meczu": dzisiaj
+            "gospodarz": gospodarz,
+            "gosc": gosc,
+            "data_meczu": data_meczu
         }
-        mecze_do_zapisu.append(rekord)
-    
-    # Jeśli są jakieś mecze, wysyłamy je paczką do Supabase
-    if mecze_do_zapisu:
-        res = supabase.table("mecze").insert(mecze_do_zapisu).execute()
-        print(f"Sukces! Zapisano mecze w bazie Supabase.")
-    else:
-        print("Brak meczów do zapisania na dzisiaj.")
-else:
-    print(f"Błąd API: {response.status_code}")
+
+        # Zapis do tabeli z wielką literą "Mecze"
+        supabase.table("Mecze").insert(dane_rekordu).execute()
+
+    print("Zapisano mecze do bazy pomyślnie!")
+
+if __name__ == "__main__":
+    pobierz_i_zapisz_mecze()
